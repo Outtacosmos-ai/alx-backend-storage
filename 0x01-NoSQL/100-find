@@ -1,1 +1,3 @@
-db.school.find({ name: { $regex: "^Holberton" } })
+db.school.find(
+    { name: /^Holberton/ }
+).forEach(printjson);
