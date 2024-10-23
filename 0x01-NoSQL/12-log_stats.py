@@ -2,7 +2,6 @@
 """ 12. Log stats
 """
 
-
 from pymongo import MongoClient
 
 
@@ -18,14 +17,16 @@ def log_stats():
     patch = logs_collection.count_documents({"method": "PATCH"})
     delete = logs_collection.count_documents({"method": "DELETE"})
     path = logs_collection.count_documents(
-        {"method": "GET", "path": "/status"})
+        {"method": "GET", "path": "/status"}
+    )
+
     print(f"{total} logs")
     print("Methods:")
-    print(f"\tmethod GET: {get}")
-    print(f"\tmethod POST: {post}")
-    print(f"\tmethod PUT: {put}")
-    print(f"\tmethod PATCH: {patch}")
-    print(f"\tmethod DELETE: {delete}")
+    print(f"    method GET: {get}")
+    print(f"    method POST: {post}")
+    print(f"    method PUT: {put}")
+    print(f"    method PATCH: {patch}")
+    print(f"    method DELETE: {delete}")
     print(f"{path} status check")
 
 
