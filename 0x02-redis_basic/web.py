@@ -1,49 +1,54 @@
 #!/usr/bin/env python3
-""" function that uses the requests module to obtain the
-HTML content of a particular URL and returns it.
-"""
+"""In this tasks, we will implement a get_page function
+(prototype: def get_page(url: str) -> str:). The core of
+the function is very simple. It uses the requests module
+to obtain the HTML content of a particular URL and returns it.
+
+Start in a new file named web.py and do not reuse the code
+written in exercise.py.
+
+Inside get_page track how many times a particular URL was
+accessed in the key "count:{url}" and cache the result with
+an expiration time of 10 seconds.
+
+Tip: Use http://slowwly.robertomurray.co.uk to simulate
+a slow response and test your caching."""
+
 
 import redis
 import requests
-from typing import Callable
 from functools import wraps
 
-# Initialize Redis client
 r = redis.Redis()
 
 
-def track_access_count(method: Callable) -> Callable:
-    """Decorator to track the number of times a URL is accessed."""
+def url_access_count(method):
+    """decorator for get_page function"""
     @wraps(method)
-    def wrapper(url: str, *args, **kwargs):
-        count_key = f"count:{url}"
-        r.incr(count_key)
-        return method(url, *args, **kwargs)
+    def wrapper(url):
+        """wrapper function"""
+        key = "cached:" + url
+        cached_value = r.get(key)
+        if cached_value:
+            return cached_value.decode("utf-8")
+
+            # Get new content and update cache
+        key_count = "count:" + url
+        html_content = method(url)
+
+        r.incr(key_count)
+        r.set(key, html_content, ex=10)
+        r.expire(key, 10)
+        return html_content
     return wrapper
 
 
-def cache_result(method: Callable) -> Callable:
-    """Decorator to cache the result of a URL fetch for 10 seconds."""
-    @wraps(method)
-    def wrapper(url: str, *args, **kwargs):
-        cache_key = f"cache:{url}"
-        cached_result = r.get(cache_key)
-        if cached_result:
-            return cached_result.decode('utf-8')
-
-        result = method(url, *args, **kwargs)
-        r.setex(cache_key, 10, result)
-        return result
-    return wrapper
-
-
-@track_access_count
-@cache_result
+@url_access_count
 def get_page(url: str) -> str:
-    """Fetch the HTML content of a particular URL."""
-    response = requests.get(url)
-    return response.text
+    """obtain the HTML content of a particular"""
+    results = requests.get(url)
+    return results.text
 
 
 if __name__ == "__main__":
-    print(get_page('http://slowwly.robertomurray.co.uk'))
+    get_page('http://slowwly.robertomurray.co.uk')
